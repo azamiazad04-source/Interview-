@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UK Student Visa Interview Simulator</title>
+<style>
+:root {
+  --bg:#0b1020; --panel:#121a2e; --panel2:#18233d; --text:#f5f7fb;
+  --muted:#aab5cc; --accent:#6ea8fe; --good:#25c997; --danger:#ff4d5e;
+  --warning:#ffc857; --border:#2a3858; --shadow:0 18px 50px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:linear-gradient(135deg,#080d19,#101a31 55%,#0b1020);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{min-height:100vh}
+button{font:inherit}
+.app{max-width:1100px;margin:auto;padding:18px}
+.header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:14px}
+h1{font-size:clamp(1.35rem,4vw,2rem);margin:0 0 5px}
+.subtitle{color:var(--muted);font-size:.92rem}
+.panel{background:rgba(18,26,46,.94);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:18px}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap}
+.btn{border:1px solid var(--border);background:#1a2744;color:var(--text);border-radius:12px;padding:11px 14px;cursor:pointer;font-weight:700;min-height:44px}
+.btn:hover,.btn:focus-visible{filter:brightness(1.15);outline:3px solid rgba(110,168,254,.25);outline-offset:2px}
+.btn.primary{background:var(--accent);color:#07101f;border-color:transparent}
+.btn.danger{background:var(--danger);border-color:transparent;color:#fff}
+.btn.good{background:var(--good);color:#06150f;border-color:transparent}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.hidden{display:none!important}
+.setup{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+@media(max-width:780px){.setup{grid-template-columns:1fr}.header{flex-direction:column}}
+.info-list{display:grid;gap:10px;margin:15px 0 0;padding:0;list-style:none}
+.info-list li{display:flex;gap:10px;align-items:flex-start;color:#dce3f3}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);margin-top:7px;flex:none}
+.notice{padding:12px 14px;border-radius:12px;background:#0e172b;border:1px solid var(--border);color:var(--muted);font-size:.9rem;line-height:1.45}
+.section-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}
+@media(max-width:600px){.section-grid{grid-template-columns:repeat(2,1fr)}}
+.section-chip{padding:10px;border-radius:11px;background:#17223a;border:1px solid var(--border);font-size:.82rem}
+.interview{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:15px}
+@media(max-width:900px){.interview{grid-template-columns:1fr}}
+.topline{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:#25375e;color:#dce8ff;font-weight:800;font-size:.8rem;border:1px solid #385486}
+.progress{height:9px;background:#202d49;border-radius:99px;overflow:hidden;margin:14px 0}
+.progress>span{display:block;height:100%;background:var(--accent);width:0%;transition:width .25s linear}
+.timer{font-variant-numeric:tabular-nums;font-size:clamp(2.4rem,10vw,4.7rem);font-weight:900;letter-spacing:-.05em;text-align:center;margin:12px 0 3px}
+.timer.read{color:var(--warning)} .timer.answer{color:var(--good)} .timer.ended{color:var(--muted)}
+.timer-label{text-align:center;color:var(--muted);font-size:.86rem}
+.question{font-size:clamp(1.35rem,3.2vw,2rem);line-height:1.35;margin:18px 0 20px}
+.answer-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.answer-actions{grid-template-columns:1fr}}
+.next{width:100%;font-size:1.1rem;padding:16px;margin-top:12px}
+.banner{padding:13px 15px;border-radius:12px;background:#17392f;border:1px solid #247c62;color:#c8ffef;font-weight:700;margin:12px 0}
+.warning{background:#3d3015;border-color:#765d21;color:#ffe7a3}
+.video-panel{position:sticky;top:12px;align-self:start}
+.video-wrap{position:relative;border-radius:16px;overflow:hidden;background:#05080f;border:1px solid var(--border);aspect-ratio:16/10}
+video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
+.camera-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted)}
+.rec{position:absolute;top:10px;left:10px;background:var(--danger);padding:6px 9px;border-radius:999px;font-size:.75rem;font-weight:900;letter-spacing:.04em;box-shadow:0 0 0 3px rgba(255,77,94,.15)}
+.rec::before{content:"";display:inline-block;width:7px;height:7px;background:white;border-radius:50%;margin-right:6px;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.cam-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat{padding:10px;border-radius:11px;background:#0f172a;border:1px solid var(--border)}
+.stat b{display:block;font-size:1.1rem} .stat small{color:var(--muted)}
+.recordings{margin-top:14px}
+.recording-item{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px;border-top:1px solid var(--border)}
+.recording-item:first-child{border-top:0}
+.recording-actions{display:flex;gap:7px;flex-wrap:wrap}
+.end{text-align:center;padding:28px 8px}
+.end h2{font-size:2rem;margin:5px 0 8px}
+.kbd{font-family:ui-monospace,monospace;background:#0c1426;border:1px solid var(--border);padding:2px 6px;border-radius:6px}
+.footer{color:var(--muted);font-size:.78rem;margin-top:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>UK Student Visa Interview Simulator</h1>
+      <div class="subtitle">Random questions • 15-second reading time • 3-minute answers • webcam practice • local recordings</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="setupBtn">Setup</button>
+      <button class="btn" id="clearBtn">Clear Saved Recordings</button>
+    </div>
+  </div>
+
+  <section id="setup" class="panel setup">
+    <div>
+      <h2>Practice session</h2>
+      <p class="subtitle">This simulator uses the questions from your uploaded UK student interview questionnaire. It keeps the source's nine named sections: Introduction, Why the UK?, University, Course, Accommodation, Working Restrictions, Finances, Career and General/Extra Questions.</p>
+      <div class="section-grid">
+        <div class="section-chip"><b>Why the UK?</b><br><span class="subtitle">0 questions</span></div><div class="section-chip"><b>Course</b><br><span class="subtitle">0 questions</span></div><div class="section-chip"><b>Accommodation</b><br><span class="subtitle">0 questions</span></div><div class="section-chip"><b>Working Restrictions</b><br><span class="subtitle">0 questions</span></div><div class="section-chip"><b>Finances</b><br><span class="subtitle">0 questions</span></div><div class="section-chip"><b>Career</b><br><span class="subtitle">0 questions</span></div><div class="section-chip"><b>General</b><br><span class="subtitle">0 questions</span></div><div class="section-chip"><b>Introduction</b><br><span class="subtitle">0 questions</span></div><div class="section-chip"><b>University</b><br><span class="subtitle">0 questions</span></div>
+      </div>
+      <ul class="info-list">
+        <li><span class="dot"></span><span><b>Reading:</b> 15 seconds, with <span class="kbd">Start Answering Now</span> available.</span></li>
+        <li><span class="dot"></span><span><b>Answer:</b> up to 3 minutes. It never advances automatically.</span></li>
+        <li><span class="dot"></span><span><b>Recording:</b> camera/microphone are optional. If permission is denied, practice continues normally.</span></li>
+        <li><span class="dot"></span><span><b>Privacy:</b> recordings stay in this browser using local storage/IndexedDB and are never uploaded by this page.</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="notice"><b>Browser note:</b> camera/microphone access normally requires a secure context such as HTTPS or localhost. If you open this HTML directly as a file and the browser blocks camera access, the interview itself still works; use localhost/HTTPS to enable recording.</div>
+      <div style="height:10px"></div>
+      <button class="btn primary" id="startBtn" style="width:100%;font-size:1.08rem">Start Interview</button>
+      <div style="height:8px"></div>
+      <button class="btn" id="cameraBtn" style="width:100%">Enable Camera & Microphone</button>
+      <div id="setupStatus" class="notice" style="margin-top:10px">Camera and microphone are optional. You can start without them.</div>
+    </div>
+  </section>
+
+  <section id="interview" class="interview hidden">
+    <main class="panel">
+      <div class="topline">
+        <span class="badge" id="sectionBadge">Section</span>
+        <span class="subtitle" id="counter">Question 1</span>
+      </div>
+      <div class="progress"><span id="progressBar"></span></div>
+      <div id="timer" class="timer read">00:15</div>
+      <div id="timerLabel" class="timer-label">Reading time</div>
+      <div id="banner" class="banner hidden"></div>
+      <div id="question" class="question" tabindex="-1"></div>
+      <div class="answer-actions">
+        <button class="btn primary" id="startAnswerBtn">Start Answering Now</button>
+        <button class="btn danger" id="endAnswerBtn" disabled>End Answer</button>
+      </div>
+      <button class="btn next" id="nextBtn" disabled>Next Question →</button>
+      <div class="notice" style="margin-top:12px">Keyboard: <span class="kbd">Enter</span> starts answering when available. <span class="kbd">N</span> moves to the next question only after you end the answer.</div>
+    </main>
+
+    <aside class="panel video-panel">
+      <div class="topline"><b>Camera practice</b><span id="recBadge" class="rec hidden">REC</span></div>
+      <div class="video-wrap" style="margin-top:10px">
+        <video id="preview" autoplay muted playsinline></video>
+        <div id="cameraPlaceholder" class="camera-placeholder">Camera preview will appear here.<br>Enable camera & microphone to practice eye contact and body language.</div>
+      </div>
+      <div class="cam-controls">
+        <button class="btn" id="enableDuringBtn">Enable Camera & Mic</button>
+        <button class="btn" id="stopMediaBtn">Stop Camera</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="answeredCount">0</b><small>Answered</small></div>
+        <div class="stat"><b id="savedCount">0</b><small>Saved recordings</small></div>
+      </div>
+      <div id="recordings" class="recordings"></div>
+    </aside>
+  </section>
+
+  <section id="end" class="panel end hidden">
+    <h2>Interview complete</h2>
+    <p class="subtitle" id="endSummary"></p>
+    <button class="btn primary" id="againBtn" style="font-size:1.08rem">Practice Again</button>
+    <div id="endRecordings" style="margin-top:14px"></div>
+  </section>
+
+  <div class="footer">Local-only practice tool. No backend, no account, and no upload endpoint.</div>
+</div>
+
+<script>
+const QUESTIONS = {"Introduction": ["How would you like to introduce yourself?"], "Why the UK?": ["What do you think will be the three biggest benefits of studying and living in the UK?", "What factors influenced your decision to choose the UK as your study destination?", "How do you believe the UK education system will benefit your academic and professional goals?", "Why did you choose the UK for Further Education?", "What inspired you to study in the UK? Please give at least three reasons.", "How did you weigh the costs of studying in the UK against the potential benefits when making your decision?", "How will your studies in the UK benefit your career or further education?", "Do UK graduates have more advantages getting a job in your country? If yes, why?", "What aspects of British life and culture are you looking forward to experiencing as a student?", "How did the cost to study in the UK, compared to other countries you considered?", "How did the reputation of UK universities influence your choice to study there?", "In what ways do you think studying in the UK will broaden your worldview?", "How popular is it to study in the UK in your country?", "Why is the cultural diversity in the UK important to your decision to study there? How did you evaluate the quality of education in the UK against other countries? What kind of student support services and facilities do you expect to find in the UK?", "How did you evaluate the quality of education in the UK against other countries?", "What kind of student support services and facilities do you expect to find in the UK?", "Are there unique opportunities or resources in the UK that you think will help you develop and learn? What are your expectations for student life in the UK, and how do you think it differs from your home country?", "How did the reputation of UK universities influence your choice to study there? In what ways do you think studying in the UK will broaden your worldview?", "What are the top three challenges you anticipate facing while living in the UK? What are the top three benefits you see in studying and living in the UK?", "What factors could impact your decision to NOT pursue your education in the UK? What recent news about the UK have you heard?", "What was the most important factor from UK universities that influenced your decision to study there? How do you think studying in the UK will improve your personal development and cultural understanding? What events or experiences made you prefer the UK as a place to study?", "How do you believe the UK's education system will help your educational and career goals? What features of the UK's higher education system interest you the most?", "Can you give at least three reasons for choosing to study in the UK?", "List 3 advantages and disadvantages of studying in the UK and in your home countries? Did anyone influence your decision to choose the UK?4", "How do you think studying in the UK will affect your views on global issues or your home country? What parts of British culture or history are you especially keen to learn more about?", "What differences do you see between universities in the UK and those in your country? How do you believe studying in the UK will deepen your understanding of British culture?", "What aspects of British life and culture are you looking forward to experiencing as a student? How did the cost to study in the UK, compared to other countries you considered?", "How have you prepared to adapt to the different culture and education system in the UK? What are the first three things you plan to do upon arriving in the UK?"], "University": ["What is the name of the university you have applied for and why have you chosen it?", "What is the full name of your university which you have chosen?", "What are some unique features or strengths of this university that attract you?", "How does this University’s reputation and ranking influence your decision to study here?4", "What factors led you to choose this specific university for your studies?", "What made you choose this university over others in the UK?", "What aspects of the university’s campus and facilities do you find most appealing?", "How do you think studying at this university will help you achieve your long-term goals and aspirations?", "How did the university's location or campus environment affect your choice?", "How do you think the university's location and surrounding area will contribute to your overall study experience?", "Can you discuss the main reasons you prioritized this university over others?", "How do you plan to contribute your unique academic background and experiences to your chosen course and the university community?", "What specific skills or knowledge do you hope to gain from your studies at our university that will benefit your future career?", "What unique features or strengths of other universities caught your attention?", "Did the experiences of current or former students influence your decision to study at this university?", "What aspects of the universities you considered were appealing to you?", "How did you collect feedback from current students or alumni of other universities?", "What special resources, facilities, or services influenced your decision to apply to this university?", "How do the teaching style, faculty, and courses at this university align with your learning objectives?", "How does this university's teaching and learning approach match your academic preference?", "How did the reputation and ranking of other universities influence your decision?", "How did your friends, family, or academic advisors influence your decision to attend this university?", "How did the locations and campus environments of other universities influence your decision?", "Why did you choose this particular university for your studies?", "What networking, internship, or career opportunities does this university offer that appeal to you?", "How do you think your chosen university stands out from others offering similar courses?", "How did you research and compare universities before choosing this one?", "What about the university's history or reputation made you want to study there?", "How did the reputation and ranking of this university affect your choice to study here?", "How did you research and compare the universities you considered?", "What are the main reasons you prioritised this university over others?", "How did the location or campus environment of the university influence your choice?", "How did you consider the benefits and drawbacks of each university before making your final choice?", "Why did you choose this university over others in the UK?", "Which other universities did you consider before making your final decision, and why?", "Which parts of the university's campus and facilities appeal to you most?"], "Course": ["Why do you want to study the course?", "Why did you choose this course over other programs related to your field?", "What do you hope to achieve academically and personally by the end of your chosen course?", "What aspects of your academic background are most relevant to your chosen course in the UK?", "What are the key topics you will learn in your course?", "What are some key Skills you expect to develop throughout your course of study?", "How significant is collaboration with others in your course?", "What aspects of the curriculum and structure of your course appeal to you the most?", "How will you manage your time for classes, homework, and other responsibilities?", "How does your chosen course compare to similar courses at other institutions?", "What unique aspects of the course in the UK attracted you to study there?", "What are you most looking forward to learning in your course?", "Do you intend to join any extracurricular clubs or groups related to your studies?", "How have your past studies prepared you for your course at the university?", "What is the main focus of your course and what do you aim to achieve by studying it? How does your chosen course align with your previous studies and interests?", "How do you think your course will help you achieve your career goals?", "What are you most looking forward to learning in your course? What key skills do you expect to gain from your studies?", "What aspects of the curriculum and structure of your course appeal to you the most? How will you manage your time for classes, homework, and other responsibilities?"], "Accommodation": ["Where will you stay? Describe your accommodation, rent, distance to the university, travel details, etc.", "What type of accommodation are you planning to live in while studying at the university?", "What steps have you taken to ensure your chosen accommodation is within your budget and can be financially managed during your studies?", "How do you plan to commute between your accommodation and the university campus or other important locations?", "How did you research and compare different accommodation options before making your decision?", "What factors influenced your choice of accommodation, such as cost, location or amenities?", "How do you think your chosen accommodation will enhance your study experience and well-being?", "What are your plans for engaging with housemates or neighbors to create a supportive living environment in the UK?", "Did you consider living with roommates, and why did you choose or reject this option?", "How do you intend to create a comfortable living and study space in your accommodation?", "How do you plan to engage with fellow residents and build a community in your accommodation?", "Do you plan to live on-campus or off-campus and why?", "How will the location of your accommodation contribute to your academic success and well-being?", "What resources or advice did you seek when searching for accommodation?", "What safety features or measures did you consider when choosing your accommodation, and how do they meet your priorities as an international student?", "How did the availability of university-managed accommodation influence your decision?", "How will you balance your academic commitments with your responsibilities as a tenant?", "Did you consider alternatives like homestays or short-term rentals? What are your thoughts on these options?", "What safety and security measures were important to you in choosing your accommodation?", "What amenities or features, like private or shared facilities, were you looking for in your accommodation?", "What steps have you taken to make sure your chosen accommodation fits your budget during your studies?", "How did you research and compare various accommodation options?", "What advice would you offer to future students looking for accommodation at the university?", "How do you plan to adapt to living independently or with new roommates while at university?", "How do you plan to travel between your accommodation and the university or other key locations?", "What is your approach to finding accommodation and what challenges do you anticipate or have already faced?"], "Working Restrictions": ["Are you aware of the restrictions on working while studying in the UK on a student visa?", "Do you know how many hours you are allowed to work as a student in the UK?", "Can you explain the restrictions on working hours for international students in the UK under your visa type?", "How familiar are you with the rules and regulations related to working on a student visa in the UK?", "Are you familiar with the work rules for international students in the UK?"], "Finances": ["Can you explain how you have saved or prepared financially for your studies in the UK, including any savings or family contributions?", "Have you researched the UKVI financial requirements for international students? If so, how have you ensured you meet these requirements?", "Have you researched the living costs near your university and how has this affected your budget?", "How do you plan to cover any unexpected expenses that may arise during your time at the university?", "How have you budgeted for your living expenses, including accommodation, transportation, food, and other day-to-day costs?", "How important was the overall cost of studying (tuition fees and living expenses) in your decision to pursue your chosen course and university?", "What financial advice would you offer to others who want to study at your university?", "How have you prepared financially for your studies in the UK, such as saving money or receiving family support?", "How do you plan to pay for your tuition and living costs in the UK?", "What’s your course fee and who will support the payments?", "How will you save money and cut costs while studying?", "How will you manage your money and studies at the same time?", "What financial challenges do you expect and how will you address them?", "How have you planned your budget for housing, travel, food, and daily expenses?", "How will you deal with changes in currency exchange rates and living costs during your studies?", "How will you handle currency exchange rates and their effect on your budget while you study in the UK?e", "How did you find and choose your funding options?", "Have you thought about the costs of travelling home during breaks, and how have you included these in your budget?", "How will you manage and spend your money wisely while studying?", "How has your family or others supported you financially for university?", "Do you have a plan for unexpected financial emergencies in the UK?"], "Career": ["Are you planning to return to your home country, stay in the UK, or explore opportunities in other countries after graduating?", "Can you describe your short-term and long-term goals after completing your degree at our university?", "How do you think the knowledge gained from this course will contribute to your future career goals?", "What are your plans after completing your studies in the UK?", "How do you think your studies in the UK will contribute to your professional development and future career prospects?", "How could working in the UK provide you with skills useful for your future career?", "What is your dream job or ideal workplace after graduation?", "How important is getting work experience in the UK for your career goals?", "How will the knowledge from your course be applicable in your future job?", "How do you believe your course and university will contribute to your long-term job stability and financial security?", "What career do you aspire to, and how will your course help you achieve this?", "How will you transition from being a student to starting your career?", "How do you plan to use your university's career services to achieve your job objectives?", "How do you think studying abroad will distinguish you in the job market?", "What are the benefits of having an internationally recognised degree, and how will it help your career?", "Have you considered starting your own business? Why or why not?", "How will you stay updated with developments in your field after graduation?", "How do you plan to stay connected with your university friends after graduation?", "What are the industries or sectors you are interested in pursuing a career in after completing your studies?", "What are your expectations regarding the job market and employment opportunities in your chosen field after graduation?", "Are there any specific companies or locations where you would like to work after graduating?", "What types of jobs or industries interest you after graduation?", "What are the biggest challenges to achieving your career goals, and how will you overcome them?"], "General": ["When was your last education qualification completed and what have you been doing professionally since?", "Have you ever received a visa refusal? If so, please explain why?", "Do you have any known health conditions that may affect your ability to study with us?", "How do you believe your UK study experience will differ from studying in your home country?", "How have you used your teachers' advice to improve in school?", "Who is the teacher that has inspired you the most, and why?", "What are your expectations of the cultural differences between your home country and the UK?", "If you had the opportunity to create a new course or club at our university, what would it be and why?", "Are there any foods you are looking forward to trying in the UK? Why?", "How do you plan to stay connected with your family and friends back home while studying in the UK?", "What do you enjoy doing in your spare time?", "How do you typically handle homesickness, and what strategies do you plan to use to cope with it?", "What is the first career you dreamed of having as a kid?", "What can you tell me about the British weather?", "How have you maintained or improved your English language skills in preparation?", "What was your Favourite Subject in school and why?", "If you could only bring one item from your home country to share with your fellow students, what would it be and why?", "How do you plan to balance your studies and a part-time job?", "What are your strengths and weaknesses?", "What are your suggestions to tourists who want to visit your country?", "Which are the places and foods tourists shouldn’t miss if they visit your country?", "What’s your main aim in life?", "How is your country’s weather?", "Can you name three famous tourist attractions in the UK?", "Which city in the UK are you most excited to visit and why?", "What three things do you think the UK is most famous for?", "How have your past academic achievements prepared you for studying at a UK university?", "What hobbies or interests do you have outside of your academic pursuits?", "Are you planning to bring any family members with you to the UK? If yes, please describe what they will be doing while you study.", "What is your favourite type of exercise and why do you prefer it?", "What is your favourite season and what do you like about it?", "What study methods have you found effective in school?", "Can you share a memorable travel experience or an interesting place you've visited and what you learned from it?", "Can you tell us about a time when you managed multiple responsibilities and still succeeded in school?", "What advice would you give to your 15-year-old self?", "If you could become an expert in any field instantly, what would it be?", "How do you plan to expand on what you've already learned in your new course?", "How do you think meeting students from various backgrounds will benefit you in the future?", "Can you share your experiences with group projects in your studies?", "What challenges have you faced in school and how did you handle them?", "Can you share a book, movie, or event that significantly influenced your perspective or worldview?", "How do you plan to use advice from teachers and classmates to improve in your studies?", "Have you ever changed your opinion about something you initially disliked?", "If you could have any exotic animal as a pet, what would you choose?", "If you could win an Olympic medal in any sport, real or imagined, which would it be and why?", "What personal and professional challenges do you anticipate facing after graduation?", "What challenges did you face in your past studies, and how did you overcome them?", "Are you planning to bring any family members with you to the UK, such as your spouse, partner, or child? If yes, please describe what they will be doing while you study.", "What soft skills do you think are crucial for success in your career?", "How will you manage your money in the UK, including opening a bank account and making a budget?", "If you didn't need to sleep, how would you use the extra time? What is a dream of yours that you haven't yet fulfilled?", "What advice would you give to future students who are considering multiple universities based on your experience?", "Why did you choose this course over others in the same subject?", "What is your favourite book and why do you like it?", "Do you have any relatives in the UK?", "How do you plan to use advice from teachers and classmates to improve in your studies? What do you hope to learn by the end of your course?", "If you had to eat the same meal every day, what would it be and why?", "What have you excelled at in school so far?", "How do you plan to continue learning and growing professionally after university?", "How do you stay updated on current events, and how do you think studying in the UK will broaden your understanding?", "How did the cost of studying, including tuition and living expenses, affect your decision to choose your university?", "How do you think working part-time could help you learn about UK culture?", "What are your major goals, and how will studying in the UK help you achieve them?", "Which aspects of your school history will be most useful for your course in the UK?", "What skills do you possess that would help you secure a part-time job in the UK?", "What is the best book you have read, and why did it stand out to you? What is the best film or TV series you've seen, and why is it your favourite? What is your favourite animal and why?", "What have you done to reduce your living costs in the UK, like finding affordable housing and transport or budgeting for groceries?", "How have you improved your English for studying in the UK?", "What advice would you give to other international students planning to work while studying in the UK?", "How do you plan to use your university contacts to support your career after graduation?", "Are you planning to work in the UK, and if so, what job?", "How do you plan to manage your time and stay organised to succeed in both your studies and job in the UK?", "What is the best advice you have ever received?", "What challenges did you face when narrowing down your options and making your final decision?", "What are the advantages and disadvantages of taking a gap year after university before starting work?", "What are the 3 main jobs you can be offered in your country when completing this course? How do you plan to stay engaged and focused throughout your course?", "How have your teachers or lecturers influenced your academic and career plans?", "What challenges do you anticipate from working and studying at the same time in the UK?", "What are three things you think the UK is famous for? What are three famous tourist attractions in the UK? What UK foods are you excited to try and why?", "How will you change your current study habits to succeed in your course at university?", "Do you have friends who are like family to you?", "Can you summarise your educational background and the subjects you studied, including how well you did?", "What have you researched about part-time jobs and related rules in the UK?", "How will you stay informed about changes in your industry's job market?", "What advice would you give to your 15-year-old self based on what you know now? If you could become an expert in any field instantly, what would it be?", "How do you plan to use your time in the UK for both academic and personal growth? What types of food do you like, and are there any British dishes you are eager to try? What places in the UK do you plan to visit during breaks, and why do they interest you?", "Are you looking to get a part-time job while studying in the UK?", "How did the costs of tuition and living influence your choice of course and university?", "Are there any role models who have inspired your career choices?", "There might be only 2 days in a week to attend your classes, how do you plan to spend the rest of the days when you are free?", "If you could be someone famous for a day, who would it be and why? How do you like to spend a day off?", "What song makes you want to dance every time you hear it? How would you like to celebrate your birthday?", "What strategies do you have for finding a job and networking in your field after graduation?", "How did your friends, family, or academic advisors influence your decision when considering different universities?", "What qualities do you look for in people you spend time with? Describe your ideal day."]};
+const READING_SECONDS = 15;
+const ANSWER_SECONDS = 180;
+let pool = [], index = 0, phase = "idle", remaining = 0, timerId = null;
+let mediaStream = null, recorder = null, chunks = [], recordingStartedAt = null;
+let answered = 0, saved = 0, currentRecordingKey = null;
+
+const $ = id => document.getElementById(id);
+const setup = $("setup"), interview = $("interview"), end = $("end");
+const timerEl = $("timer"), timerLabel = $("timerLabel"), banner = $("banner");
+const questionEl = $("question"), sectionBadge = $("sectionBadge"), counter = $("counter");
+const progressBar = $("progressBar"), nextBtn = $("nextBtn"), startAnswerBtn = $("startAnswerBtn"), endAnswerBtn = $("endAnswerBtn");
+const preview = $("preview"), placeholder = $("cameraPlaceholder"), recBadge = $("recBadge");
+
+function shuffle(a) {
+  const x = [...a];
+  for (let i=x.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [x[i],x[j]]=[x[j],x[i]]; }
+  return x;
+}
+function buildPool() {
+  pool = [];
+  for (const [section, qs] of Object.entries(QUESTIONS)) {
+    for (const q of qs) pool.push({section, q});
+  }
+  pool = shuffle(pool);
+}
+function formatTime(s) {
+  const m = Math.floor(s/60), sec = s%60;
+  return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+}
+function updateTimer() {
+  timerEl.textContent = formatTime(remaining);
+}
+function clearTimer() {
+  if (timerId) clearInterval(timerId);
+  timerId = null;
+}
+function startCountdown(seconds, kind, done) {
+  clearTimer(); remaining = seconds;
+  timerEl.className = "timer " + kind; updateTimer();
+  timerId = setInterval(() => {
+    remaining--;
+    updateTimer();
+    if (remaining <= 0) { clearTimer(); done(); }
+  },1000);
+}
+function showBanner(text, type="") {
+  banner.textContent = text;
+  banner.className = "banner" + (type ? " "+type : "");
+}
+function hideBanner() { banner.className = "banner hidden"; banner.textContent=""; }
+
+function loadQuestion() {
+  if (index >= pool.length) return finish();
+  phase = "reading";
+  hideBanner();
+  const item = pool[index];
+  sectionBadge.textContent = item.section;
+  questionEl.textContent = item.q;
+  counter.textContent = `Question ${index+1} of ${pool.length}`;
+  progressBar.style.width = `${(index/pool.length)*100}%`;
+  startAnswerBtn.disabled = false;
+  endAnswerBtn.disabled = true;
+  nextBtn.disabled = true;
+  timerLabel.textContent = "Reading time";
+  timerEl.className = "timer read";
+  startCountdown(READING_SECONDS, "read", () => beginAnswer());
+  questionEl.focus({preventScroll:true});
+}
+function beginAnswer() {
+  if (phase === "answering") return;
+  phase = "answering";
+  timerLabel.textContent = "Answer time remaining";
+  startAnswerBtn.disabled = true;
+  endAnswerBtn.disabled = false;
+  nextBtn.disabled = true;
+  hideBanner();
+  startRecording();
+  startCountdown(ANSWER_SECONDS, "answer", () => endAnswer(true));
+}
+async function startRecording() {
+  if (!mediaStream || !window.MediaRecorder) return;
+  try {
+    chunks = [];
+    const mimeCandidates = ["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"];
+    const mime = mimeCandidates.find(m => MediaRecorder.isTypeSupported(m)) || "";
+    recorder = new MediaRecorder(mediaStream, mime ? {mimeType:mime} : undefined);
+    recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    recorder.onstop = saveRecording;
+    recordingStartedAt = Date.now();
+    recorder.start(250);
+    recBadge.classList.remove("hidden");
+  } catch(e) {
+    recorder = null;
+  }
+}
+function stopRecording() {
+  if (recorder && recorder.state !== "inactive") recorder.stop();
+  else { recBadge.classList.add("hidden"); }
+}
+function endAnswer(auto=false) {
+  if (phase !== "answering") return;
+  clearTimer();
+  phase = "ended";
+  stopRecording();
+  answered++;
+  $("answeredCount").textContent = answered;
+  timerLabel.textContent = auto ? "Answer time ended" : "Answer ended";
+  timerEl.className = "timer ended";
+  endAnswerBtn.disabled = true;
+  startAnswerBtn.disabled = true;
+  nextBtn.disabled = false;
+  showBanner(auto ? "Time is up. Press Next Question when you're ready." : "Answer ended. Press Next Question when you're ready.");
+}
+function nextQuestion() {
+  if (phase !== "ended") return;
+  index++;
+  loadQuestion();
+}
+function finish() {
+  clearTimer(); phase = "finished"; stopRecording();
+  interview.classList.add("hidden"); end.classList.remove("hidden");
+  $("endSummary").textContent = `You completed ${answered} answers. Your questions were reshuffled for this session.`;
+  $("endRecordings").innerHTML = $("recordings").innerHTML || "<div class='notice'>No recordings were saved.</div>";
+}
+async function enableMedia(statusEl=$("setupStatus")) {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    statusEl.textContent = "This browser does not provide camera/microphone access. The interview can still be used normally.";
+    return false;
+  }
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:true});
+    preview.srcObject = mediaStream; placeholder.classList.add("hidden");
+    statusEl.textContent = "Camera and microphone enabled. Recording starts only while you answer.";
+    return true;
+  } catch(e) {
+    statusEl.textContent = "Camera/microphone permission was not granted. No recording will be made; the interview will continue normally.";
+    mediaStream = null; placeholder.classList.remove("hidden");
+    return false;
+  }
+}
+function stopMedia() {
+  if (mediaStream) mediaStream.getTracks().forEach(t=>t.stop());
+  mediaStream = null; preview.srcObject = null; placeholder.classList.remove("hidden");
+  $("setupStatus").textContent = "Camera and microphone stopped. You can continue without recording.";
+}
+function openInterview() {
+  buildPool(); index=0; answered=0; saved=0;
+  $("answeredCount").textContent="0"; $("savedCount").textContent="0"; $("recordings").innerHTML="";
+  setup.classList.add("hidden"); end.classList.add("hidden"); interview.classList.remove("hidden");
+  loadQuestion();
+}
+async function saveRecording() {
+  recBadge.classList.add("hidden");
+  if (!chunks.length) return;
+  const blob = new Blob(chunks, {type: recorder?.mimeType || "video/webm"});
+  const key = `ukvi-recording-${Date.now()}`;
+  const duration = Math.max(1, Math.round((Date.now()-recordingStartedAt)/1000));
+  try {
+    const db = await openDB();
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction("recordings","readwrite");
+      tx.objectStore("recordings").put({key, blob, section:pool[index]?.section||"Unknown", question:pool[index]?.q||"", duration, created:new Date().toISOString()});
+      tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+    });
+  } catch(e) {}
+  saved++; $("savedCount").textContent=saved;
+  addRecordingUI({key,blob,section:pool[index]?.section||"Unknown",duration});
+}
+function openDB() {
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open("UKVIInterviewSimulator",1);
+    req.onupgradeneeded=()=>req.result.createObjectStore("recordings",{keyPath:"key"});
+    req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
+  });
+}
+function addRecordingUI(r) {
+  const row=document.createElement("div"); row.className="recording-item";
+  const title=document.createElement("div"); title.innerHTML=`<b>${escapeHtml(r.section)}</b><br><small>${formatTime(r.duration)} recording</small>`;
+  const actions=document.createElement("div"); actions.className="recording-actions";
+  const dl=document.createElement("button"); dl.className="btn"; dl.textContent="Download";
+  dl.onclick=()=>{ const url=URL.createObjectURL(r.blob); const a=document.createElement("a"); a.href=url; a.download=`UKVI-${r.section.replace(/[^a-z0-9]+/gi,"-")}-${Date.now()}.webm`; a.click(); setTimeout(()=>URL.revokeObjectURL(url),2000); };
+  actions.appendChild(dl); row.append(title,actions); $("recordings").prepend(row);
+}
+function escapeHtml(s) { return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
+
+$("startBtn").onclick=openInterview;
+$("cameraBtn").onclick=()=>enableMedia();
+$("enableDuringBtn").onclick=()=>enableMedia();
+$("stopMediaBtn").onclick=stopMedia;
+$("startAnswerBtn").onclick=beginAnswer;
+$("endAnswerBtn").onclick=()=>endAnswer(false);
+$("nextBtn").onclick=nextQuestion;
+$("againBtn").onclick=()=>{ end.classList.add("hidden"); setup.classList.remove("hidden"); buildPool(); };
+$("setupBtn").onclick=()=>{ clearTimer(); phase="idle"; interview.classList.add("hidden"); end.classList.add("hidden"); setup.classList.remove("hidden"); };
+$("clearBtn").onclick=async()=>{
+  try { const db=await openDB(); const tx=db.transaction("recordings","readwrite"); tx.objectStore("recordings").clear(); tx.oncomplete=()=>{ saved=0; $("savedCount").textContent="0"; $("recordings").innerHTML=""; alert("Saved recordings cleared from this browser."); }; }
+  catch(e){ alert("Could not clear local recordings."); }
+};
+document.addEventListener("keydown",e=>{
+  if (e.key==="Enter" && !e.repeat && phase==="reading") beginAnswer();
+  if ((e.key==="n" || e.key==="N") && phase==="ended") nextQuestion();
+  if (e.key==="Escape" && phase==="answering") endAnswer(false);
+});
+window.addEventListener("beforeunload",()=>{ if(mediaStream) mediaStream.getTracks().forEach(t=>t.stop()); });
+</script>
+</body>
+</html>
